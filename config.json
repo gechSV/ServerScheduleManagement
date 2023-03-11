@@ -1,0 +1,10 @@
+{
+    "socket": {
+        "host_ip": "127.0.0.1",
+        "port": 8000
+    }, 
+    "file_setting": {
+        "main_dir": "D:\\Schedule_Manegement_Storage",
+        "dir_for_group_list": "\\group_list" 
+    }
+}
