@@ -1,8 +1,12 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 var FormData = require('form-data');
+const FIO = require('./FileIO')
+const config = require('../config.json');
 
 const url = 'https://zabgu.ru/schedule'
+
+
 
 // Функция предназначенная для получения списка всех групп 
 async function getAllGroup(){
@@ -56,8 +60,7 @@ async function getEventListByGroup(strNameGroup){
     const $ = cheerio.load(htmlBody);
 
     const selectGr = await $('table.schedule_table')
-    // console.log(selectGr.html())
-    
+
     let data = [];
     let counterWeekDay = 0;
     let counterWeekType = 1; 
@@ -103,59 +106,74 @@ async function getEventListByGroup(strNameGroup){
             counterEventNum += 0.5;
         }
     });
-
-    // for(let i = 0; i < data.length; i++){
-
-    // }
     
-    console.log(`The schedule of the ${strNameGroup} group has been received`)
+    console.log(`ScheduleParser: The schedule of the ${strNameGroup} group has been received`)
     return data;
+}
+
+
+// Функция для получения списка наименований всех групп ЗабГУ
+async function readAllGroupName (){
+    let allGroupBuffer = []
+    let  allGroup = [];
+
+    // Получаем список групп
+    allGroupBuffer = await getAllGroup();
+    // console.log(allGroup);
+
+    // Удаляем группы с не цикличным* расписанием  
+    allGroupBuffer.forEach(function(group){
+            if((!group.nameGroup.includes('з-')) && (!group.nameGroup.includes('зм-')) 
+            && (!group.nameGroup.includes('мз-')) && (!group.nameGroup.includes('с-'))
+            && (!group.nameGroup.includes('зк-'))){
+                allGroup.push(group);
+            }
+    })
+
+    // Записываем список групп в файл в формате JSON
+    try {
+        FIO.writeJSONFile(config.file_setting.dir_for_group_list, 
+                        'ZabGU_Group_list', JSON.stringify(allGroup));
+    } catch (error) {
+        console.log(error);
+        return;
+    }
+}
+
+
+
+// Функция для чтения всех расписаний груп и запись их в отдельные файлы
+async function getAllGroupSchedule(){
+
+    //Записываем наименования всех групп в файл 
+    await readAllGroupName();
+
+    let allGroupList = []
+
+    //  Читаем список групп из файла 
+    try {
+        allGroupList = JSON.parse(FIO.readJSONFile(config.file_setting.dir_for_group_list, 'ZabGU_Group_list')); 
+    } catch (error) {
+        console.log(error);
+        return;
+    }
+
+    allGroupList.forEach(async function(group){
+        // Получаем рассписание группы по её названию - nameGroup : ИВТ(ивт)-19
+        groupSchedule = await getEventListByGroup(group.nameGroup);
+
+        // Записываем расписание группы в файл
+         try {
+            FIO.writeJSONFile(config.file_setting.dir_for_schedule, 
+                            'group_schedule_(' + group.nameGroup + ')', JSON.stringify(groupSchedule));
+        } catch (error) {
+            console.log(error)
+        }
+    })
+
 }
 
 exports.getAllGroup = getAllGroup;
 exports.getEventListByGroup = getEventListByGroup;
-
-
-// await axios.get(url)
-// .then(response => {
-
-//     htmlBody = response.data;
-
-//     // Создаём объект cheerio, передав в него html код
-//     const $ = cheerio.load(htmlBody);
-
-//     // console.log($('select#type_group option').text())
-
-//     // Получаем список групп
-//     $('select#type_group option').each((i, elem) =>{
-//         data.push({
-//             nameGroup: $(elem).text()
-//         });
-//     });
-// })
-
-// .catch(error =>{
-//     console.log(error);
-// })
-
-
-
-
-// eventNum: $(elem).find('tr:nth-child(2) td:nth-child(2)').text(),
-// eventNum2: $(elem).find('tr:nth-child(2) td:nth-child(3)').text(),
-// eventNum3: $(elem).find('tr:nth-child(2) td:nth-child(4)').text(),
-// eventNum4: $(elem).find('tr:nth-child(2) td:nth-child(5)').text(),
-
-// eventNum11: $(elem).find('tr:nth-child(3) td:nth-child(2)').text(),
-// eventNum22: $(elem).find('tr:nth-child(3) td:nth-child(3)').text(),
-// eventNum33: $(elem).find('tr:nth-child(3) td:nth-child(4)').text(),
-// eventNum44: $(elem).find('tr:nth-child(3) td:nth-child(5)').text(),
-
-// eventNum111: $(elem).find('tr:nth-child(4) td:nth-child(2)').text(),
-// eventNum222: $(elem).find('tr:nth-child(4) td:nth-child(3)').text(),
-// eventNum333: $(elem).find('tr:nth-child(4) td:nth-child(4)').text(),
-// eventNum444: $(elem).find('tr:nth-child(4) td:nth-child(5)').text(),
-// eventNum111: $(elem).find('tr:nth-child(4) td:nth-child(6)').text(),
-// eventNum222: $(elem).find('tr:nth-child(4) td:nth-child(7)').text(),
-// eventNum333: $(elem).find('tr:nth-child(4) td:nth-child(8)').text(),
-// eventNum444: $(elem).find('tr:nth-child(4) td:nth-child(5)').text(),
+exports.readAllGroupName = readAllGroupName
+exports.getAllGroupSchedule = getAllGroupSchedule

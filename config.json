@@ -5,6 +5,7 @@
     }, 
     "file_setting": {
         "main_dir": "D:\\Schedule_Manegement_Storage",
-        "dir_for_group_list": "\\group_list" 
+        "dir_for_group_list": "\\group_list",
+        "dir_for_schedule": "\\schedule"
     }
 }
