@@ -82,7 +82,8 @@ async function getEventListByGroup(strNameGroup){
             
 
             for(let c = 2; c < 8; c ++){
-                if ($(elem).find(`tr:nth-child(${j}) td:nth-child(${c})`).text().length < 3){
+                if ($(elem).find(`tr:nth-child(${j}) td:nth-child(${c})`).text().length < 3 
+                    || $(elem).find(`tr:nth-child(${j}) td:nth-child(${c})`).text() == '  в'){
                     startIndex ++;
                 }
                 else{
@@ -90,16 +91,26 @@ async function getEventListByGroup(strNameGroup){
                 }
             }
             
-            data.push({
-                WeekDayNumber: counterWeekDay,
-                WeekType:counterWeekType,
-                EventNumber: Math.floor(counterEventNum),
-                Name: $(elem).find(`tr:nth-child(${j}) td:nth-child(${startIndex})`).text(),
-                Type: $(elem).find(`tr:nth-child(${j}) td:nth-child(${startIndex + 1})`).text(),
-                Host: $(elem).find(`tr:nth-child(${j}) td:nth-child(${startIndex + 2})`).text(),
-                Location: $(elem).find(`tr:nth-child(${j}) td:nth-child(${startIndex + 3})`).text(),
-                Location2: $(elem).find(`tr:nth-child(${j}) td:nth-child(${startIndex + 4})`).text(),
-            }); 
+            let NameCon = $(elem).find(`tr:nth-child(${j}) td:nth-child(${startIndex})`).text();
+            let TypeCon = $(elem).find(`tr:nth-child(${j}) td:nth-child(${startIndex + 1})`).text();
+            let HostCon = $(elem).find(`tr:nth-child(${j}) td:nth-child(${startIndex + 2})`).text();
+            let LocationCon = $(elem).find(`tr:nth-child(${j}) td:nth-child(${startIndex + 3})`).text();
+            let Location2Con = $(elem).find(`tr:nth-child(${j}) td:nth-child(${startIndex + 4})`).text();
+
+            if (!NameCon.length == 0 && !TypeCon.length == 0 && !HostCon.length == 0 && 
+                !LocationCon.length == 0 && !Location2Con.length == 0){
+                    data.push({
+                        WeekDayNumber: counterWeekDay,
+                        WeekType:counterWeekType,
+                        EventNumber: Math.floor(counterEventNum),
+                        Name: NameCon,
+                        Type: TypeCon,
+                        Host: HostCon,
+                        Location: LocationCon,
+                        Location2: Location2Con,
+                    }); 
+                }
+
 
             startIndex = 2;
             counterWeekType++;
