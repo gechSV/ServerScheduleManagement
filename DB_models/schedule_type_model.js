@@ -5,9 +5,12 @@ const sequelize = new Sequelize("schedule_manegement_db", "postgres", "sadamit22
     host: "localhost"
   });
 
-  class ScheduleType extends Model {};
-
-  ScheduleType.init({
+/**
+ * Модель для таблицы БД, отвечающей за 
+ * индификацию типа расписания: пользовательское, школьное, для универа и тп. 
+ */
+const ScheduleType = sequelize.define("schedule_types",
+  {
    type: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -16,10 +19,11 @@ const sequelize = new Sequelize("schedule_manegement_db", "postgres", "sadamit22
   }, 
   {
     sequelize,
-    modelName: "schedule_types",
-    timestamps: true,
-  });
-  
+    timestamps: false,
+  }
+);
+
+// sequelize.sync({ alter: true })
 
 exports.ScheduleType = ScheduleType;
   

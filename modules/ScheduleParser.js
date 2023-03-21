@@ -6,9 +6,13 @@ const config = require('../config.json');
 
 const url = 'https://zabgu.ru/schedule'
 
+const {DB_logic} = require('../db_logic')
+const db_logic = new DB_logic()
 
-
-// Функция предназначенная для получения списка всех групп 
+/**
+ * Функция предназначенная для получения списка всех групп с сайта ZabGU.ru
+ * @returns массив объектов: {nameGroup: "name"}
+ */
 async function getAllGroup(){
     const data = []
     // Совершаем запрос на сайт забгу
@@ -33,7 +37,12 @@ async function getAllGroup(){
 
 
 
-// Функция предназначенная для получения списка событий по заданной группе
+/**
+ * Функция предназначенная для получения списка событий по 
+ * заданной группе с сайта ZabGU.ru
+ * @param {*} strNameGroup название группы
+ * @returns объект содержащий расписание группы
+ */
 async function getEventListByGroup(strNameGroup){
 
     var dataURL = new FormData();
@@ -123,7 +132,11 @@ async function getEventListByGroup(strNameGroup){
 }
 
 
-// Функция для получения списка наименований всех групп ЗабГУ
+/**
+ * Функция для получения списка наименований 
+ * всех групп c цикличным расписанием ЗабГУ
+ * @returns ничего)
+ */
 async function readAllGroupName (){
     let allGroupBuffer = []
     let  allGroup = [];
@@ -153,7 +166,10 @@ async function readAllGroupName (){
 
 
 
-// Функция для чтения всех расписаний груп и запись их в отдельные файлы
+/**
+ * Функция для чтения всех расписаний груп и запись их в базу данных
+ * @returns ничего)
+ */
 async function getAllGroupSchedule(){
 
     //Записываем наименования всех групп в файл 
@@ -163,25 +179,39 @@ async function getAllGroupSchedule(){
 
     //  Читаем список групп из файла 
     try {
-        allGroupList = JSON.parse(FIO.readJSONFile(config.file_setting.dir_for_group_list, 'ZabGU_Group_list')); 
+        allGroupList = await JSON.parse(FIO.readJSONFile(config.file_setting.dir_for_group_list, 'ZabGU_Group_list')); 
     } catch (error) {
         console.log(error);
         return;
     }
 
-    allGroupList.forEach(async function(group){
+    const scheduleArray = []
+
+    for (const group of allGroupList){
         // Получаем рассписание группы по её названию - nameGroup : ИВТ(ивт)-19
         groupSchedule = await getEventListByGroup(group.nameGroup);
 
-        // Записываем расписание группы в файл
-         try {
-            FIO.writeJSONFile(config.file_setting.dir_for_schedule, 
-                            'group_schedule_(' + group.nameGroup + ')', JSON.stringify(groupSchedule));
-        } catch (error) {
-            console.log(error)
-        }
-    })
+        // Записываем расписание группы в массив
+        try {
+            // FIO.writeJSONFile(config.file_setting.dir_for_schedule, 
+            //                 'group_schedule_(' + group.nameGroup + ')', JSON.stringify(groupSchedule));
+            
+            //await db_logic.addSchedule(group.nameGroup, JSON.stringify(groupSchedule), 'zabgu', 1, 1);
 
+            scheduleArray.push({
+                name: group.nameGroup,
+                schedule: JSON.stringify(groupSchedule),
+                password: 'zabgu',
+                scheduleTypeId: 1,
+                organizationId: 1});
+            
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    await db_logic.bulkAddScedule(scheduleArray);
+    console.log("sadasdadadad")
 }
 
 exports.getAllGroup = getAllGroup;

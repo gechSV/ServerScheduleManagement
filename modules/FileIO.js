@@ -2,7 +2,12 @@ const fs = require("fs");
 const config = require('../config.json')
 
 
-// Функция для записи данных в файл формата json
+/**
+ * Функция для записи данных в файл формата json
+ * @param {*} dirName путь к дириктории 
+ * @param {*} fileName название файла
+ * @param {*} data данные дл записи
+ */
 function writeJSONFile(dirName, fileName, data){
 
     // Существует ли дериктория для записи: если нет -- создать
@@ -20,7 +25,13 @@ function writeJSONFile(dirName, fileName, data){
 }
 
 
-// Функция для чтения данных из файла формата .json
+
+/**
+ * Функция для чтения данных из файла формата .json
+ * @param {*} dirName путь к дириктории
+ * @param {*} fileName название файла
+ * @returns 
+ */
 function readJSONFile(dirName, fileName){
 
     // Существует ли дериктория для записи: если нет сгенерировать ошибку

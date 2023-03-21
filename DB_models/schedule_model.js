@@ -8,9 +8,12 @@ const sequelize = new Sequelize("schedule_manegement_db", "postgres", "sadamit22
 const {ScheduleType} = require('./schedule_type_model.js')
 const {Organization} = require('./organization_model.js')
 
-class Schedule extends Model {};
-
-Schedule.init({
+/**
+ * Модель для таблицы БД, отвечающей за хранение 
+ * расписания и его служебных параметров
+ */
+const Schedule = sequelize.define("schedules", 
+{
   name:{
     type: DataTypes.STRING, 
     allowNull: false, 
@@ -25,10 +28,11 @@ Schedule.init({
   }
 }, 
 {
-  sequelize,
-  modelName: "schedules",
   timestamps: true,
-});
+  createdAt: false, 
+  updatedAt: 'updateTimestamp'
+}
+);
 
 
 ScheduleType.hasMany(Schedule, {as: "schedules"});
