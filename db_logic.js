@@ -9,12 +9,6 @@ const sequelize = new Sequelize(
     "sadamit2242", {
     dialect: "postgres",
     host: "localhost",
-    pool: {
-        max: 30,
-        min: 0,
-        acquire: 30000,
-        idle: 10000
-      }
   });
 
 // Подключение моделей БД
@@ -31,9 +25,9 @@ class DB_logic{
             console.error('Unable to connect to the database: ', error);
         });
 
-        ScheduleType.sync({ alter: true })
-        Organization.sync({ alter: true })
-        Schedule.sync({ alter: true })
+        ScheduleType.sync()
+        Organization.sync()
+        Schedule.sync()
     }
 
     /**
@@ -45,7 +39,7 @@ class DB_logic{
             await Organization.create({
                 name: name
             })
-            .then(() => console.log('\x1b[32m', 'db_logic: В таблтцу organizations добавлена запись'))
+            .then(() => console.log('\x1b[32m', 'db_logic: В таблтцу organizations добавлена запись', '\x1b[0m'))
             .catch(err=> {throw new Error("db_logic: " + err)})
         }
         else{
@@ -63,7 +57,7 @@ class DB_logic{
             await ScheduleType.create({
                 type: type
             })
-            .then(() => console.log('\x1b[32m', 'db_logic: В таблтцу scheduleType добавлена запись'))
+            .then(() => console.log('\x1b[32m', 'db_logic: В таблтцу scheduleType добавлена запись', '\x1b[0m'))
             .catch(err=> {throw new Error("db_logic: " + err)})
         }
         else{
@@ -101,7 +95,7 @@ class DB_logic{
                 scheduleTypeId: scheduleTypeId,
                 organizationId: organizationId
             })
-            .then(() => console.log('\x1b[32m', 'db_logic: В таблтцу schedule добавлена запись'))
+            .then(() => console.log('\x1b[32m', 'db_logic: В таблтцу schedule добавлена запись', '\x1b[0m'))
             .catch(err=> {throw new Error("db_logic: " + err)})
         }
         else{
@@ -110,8 +104,93 @@ class DB_logic{
         
     }
 
+    /**
+     * Функция для выгрузки в таблицу schedule большого количества строк одновременно
+     * @param {*} scheduleArray массив данных формата: {
+                name: name,
+                schedule: schedule,
+                password: '1234',
+                scheduleTypeId: 1,
+                organizationId: 1
+            } 
+     */
     async bulkAddScedule(scheduleArray){
         Schedule.bulkCreate(scheduleArray)
+        .then(() => console.log('\x1b[32m', `db_logic: В таблтцу schedule успешно добавленны ${scheduleArray.length} 
+            записей.`, '\x1b[0m'))
+            .catch(err=> {throw new Error("db_logic: " + err)})
+    }
+
+
+    /**
+     * Функция для получения id органицации по его имени
+     * @param {*} orgName нименование
+     * @returns organizationId
+     */
+    async getOrganizationIdByName(orgName){
+        const id = await Organization.findOne({
+            raw:true, 
+            attributes: ['id'],
+            where:{
+                name: orgName
+            }
+        })
+        .catch(err=> {throw new Error("db_logic: " + err)});
+
+        return id;
+    }
+
+    /**
+     * Функция для получения сиска нименования всех групп по имени организации
+     */
+    async getAllGroupNameByOrgName(orgName){
+
+        if(orgName === null){
+            throw new Error(`db_logic: orgName = null`);
+        }
+
+        const orgId = await this.getOrganizationIdByName(orgName);
+        if(orgId == null){
+            throw new Error(`db_logic: в таблице organizations не было найдено совпадений по имнени ${orgName}`);
+        }
+
+        const allGroupName = await Schedule.findAll({
+            raw: true,
+            attributes: ['name'],
+            where: {
+                organizationId: orgId.id
+            }
+        })
+        .catch(err=> {throw new Error("db_logic: " + err)});
+
+        return allGroupName;
+    }
+
+    /**
+     * Функция для получения расписания в формате JSON по названию
+     * @param {*} scName название расписания 
+     * @returns json
+     */
+    async getScheduleByName(scName){
+
+        if(scName === null){
+            throw new Error(`db_logic: scName = null`);
+        }
+
+        const schedule = await Schedule.findOne({
+            raw: true,
+            attributes: ['schedule'],
+            where: {
+                name: scName
+            }
+        })
+        .catch(err=> {throw new Error("db_logic: " + err)});
+
+        if(schedule === null){
+            throw new Error(`db_logic: в таблице schedule не было найдено совпадений по имнени ${scName}`);
+        }
+
+        return JSON.parse(schedule['schedule']);
     }
 }
 
