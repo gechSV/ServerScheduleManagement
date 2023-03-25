@@ -5,9 +5,6 @@ const sequelize = new Sequelize("schedule_manegement_db", "postgres", "sadamit22
     host: "localhost"
 });
 
-const {ScheduleType} = require('./schedule_type_model.js')
-const {Organization} = require('./organization_model.js')
-
 /**
  * Модель для таблицы БД, отвечающей за хранение 
  * расписания и его служебных параметров
@@ -34,6 +31,63 @@ const Schedule = sequelize.define("schedules",
 }
 );
 
+/**
+ * Модель для таблицы БД, отвечающей за 
+ * индификацию типа расписания: пользовательское, школьное, для универа и тп. 
+ */
+const ScheduleType = sequelize.define("schedule_types",
+  {
+   type: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true
+   } 
+  }, 
+  {
+    sequelize,
+    timestamps: false,
+  }
+);
+
+/**
+ * Модель для таблицы БД, отвечающей за индефикацию организаций, 
+ * по типу деятельности ВУЗ, Школа, пользователи и тп
+ */
+const OrganizationType = sequelize.define("organization_types", 
+  {
+   type_name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true
+   } 
+  }, 
+  {
+    timestamps: false,
+  }
+);
+
+/**
+ * Модель для таблицы БД, отвечающей за индефикацию организации, 
+ * которой пренадлежит данное расписание: пользовательское, ЗабГУ, школа №1, и тп.
+ */
+const Organization = sequelize.define("organizations", 
+  {
+   name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true
+   } 
+  }, 
+  {
+    timestamps: false,
+  }
+);
+
+OrganizationType.hasMany(Organization, {as: "organizations"});
+Organization.belongsTo(OrganizationType, {
+  foreignKey: "id",
+  as: "organization_types"
+})
 
 ScheduleType.hasMany(Schedule, {as: "schedules"});
 Schedule.belongsTo(ScheduleType, {
@@ -47,4 +101,10 @@ Schedule.belongsTo(Organization, {
   as: "organizations"
 })
 
-exports.Schedule = Schedule;  
+sequelize.sync({alter:true})
+
+exports.Schedule = Schedule; 
+exports.ScheduleType =ScheduleType;
+exports.Organization = Organization;
+exports.OrganizationType = OrganizationType;
+

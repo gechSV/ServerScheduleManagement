@@ -14,7 +14,7 @@ const db_logic = new DB_logic()
 router.use(express.static('public'))
 
 router.get('/', function(req, res){ 
-        res.status(200).send({message: 'ok'});
+        res.status(202).send({message: 'ok'});
 })
 
 /**
@@ -52,6 +52,9 @@ router.get("/api/getScheduleByGroupName/:scheduleName", async function(req, res)
                 res.status(400).send({message: `${error}`});
         }
 })
+
+
+router.get("/api/getAllOrganization")
 
 
 

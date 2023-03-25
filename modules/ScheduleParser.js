@@ -6,7 +6,7 @@ const config = require('../config.json');
 
 const url = 'https://zabgu.ru/schedule'
 
-const {DB_logic} = require('../db_logic')
+const {DB_logic} = require('../db_logic');
 const db_logic = new DB_logic()
 
 /**
@@ -171,6 +171,8 @@ async function readAllGroupName (){
  * @returns ничего)
  */
 async function getAllGroupSchedule(){
+
+    // db_logic.addSchedule("test", "расписание", "test", 0, 0)
 
     //Записываем наименования всех групп в файл 
     await readAllGroupName();

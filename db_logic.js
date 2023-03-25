@@ -12,22 +12,26 @@ const sequelize = new Sequelize(
   });
 
 // Подключение моделей БД
-const {ScheduleType} = require('./DB_models/schedule_type_model.js')
-const {Organization} = require('./DB_models/organization_model.js')
-const {Schedule} = require('./DB_models/schedule_model.js')
+const {Schedule, ScheduleType, OrganizationType, Organization} = 
+    require('./DB_models/schedule_model.js')
 
 class DB_logic{
 
     constructor(){
-        sequelize.authenticate().then(async () => {
+        sequelize.authenticate().then( async () => {
             console.log('Connection has been established successfully.');
          }).catch((error) => {
             console.error('Unable to connect to the database: ', error);
         });
 
-        ScheduleType.sync()
-        Organization.sync()
-        Schedule.sync()
+    }
+
+    async sync_db(){
+        ScheduleType.sync({ alter: true })
+        .then(OrganizationType.sync({ alter: true })
+        .then(Organization.sync({ alter: true }))
+        .then(Schedule.sync({ alter: true }))
+        );
     }
 
     /**
