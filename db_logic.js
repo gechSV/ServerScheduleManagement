@@ -175,17 +175,19 @@ class DB_logic{
      * @param {*} scName название расписания 
      * @returns json
      */
-    async getScheduleByName(scName){
+    async getScheduleByName(scName, password){
 
         if(scName === null){
             throw new Error(`db_logic: scName = null`);
         }
+        
 
         const schedule = await Schedule.findOne({
             raw: true,
             attributes: ['schedule'],
             where: {
-                name: scName
+                name: scName,  
+                password: password
             }
         })
         .catch(err=> {throw new Error("db_logic: " + err)});
@@ -195,6 +197,41 @@ class DB_logic{
         }
 
         return JSON.parse(schedule['schedule']);
+    }
+
+    async getAllOrganizationByType(typeOrgName){
+        if(typeOrgName === null){
+            throw new Error(`db_logic: typeOrgName = null`);
+        }
+        
+        // Получаем id по названию типа организации
+        const idType = await OrganizationType.findOne({
+            raw: true,
+            attributes: ['id'],
+            where:{
+                type_name: typeOrgName
+            }
+        }) 
+        .catch(err=> {throw new Error("db_logic: " + err)});
+
+        if(idType === null){
+            throw new Error(`db_logic: в таблице organization_types не было найдено совпадений по имнени типа ${typeOrgName}`);
+        }
+
+        const organizations = await Organization.findAll({
+            raw: true,
+            attributes: ['name'],
+            where:{
+                organizationTypeId: idType.id
+            }
+        })
+        .catch(err=> {throw new Error("db_logic: " + err)});
+
+        if(idType === null){
+            throw new Error(`db_logic: в таблице organizations не было найдено совпадений по organizationTypeId: ${idType.id}`);
+        }
+
+        return organizations;
     }
 }
 

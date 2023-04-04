@@ -8,18 +8,23 @@ const FIO = require('./modules/FileIO')
 const config = require('./config.json');
 
 const {DB_logic} = require('./db_logic');
-const { Console } = require('console');
 const db_logic = new DB_logic()
 
 router.use(express.static('public'))
 
-router.get('/', function(req, res){ 
-        res.status(202).send({message: 'ok'});
+router.get('/', async function(req, res){ 
+        try {
+                const organizations = await db_logic.getAllOrganizationByType("Высшее учебное заведение");
+                res.status(200).send(organizations);
+        } catch (error) {
+                console.log(error);
+                res.status(400).send({message: `${error}`});  
+        }
 })
 
 /**
  * API для получения списка наименований всех групп по названию организации
- * пример запроса: http://127.0.0.1:8000/api/getScheduleNameListByOrganizatonName/ЗабГУ
+ * пример запроса: http://192.168.0.11:8000/api/getScheduleNameListByOrganizatonName/ЗабГУ
  */
 router.get("/api/getScheduleNameListByOrganizatonName/:organizationName", 
 async function(req, res){
@@ -28,7 +33,8 @@ async function(req, res){
         // console.log(await db_logic.getOrganizationIdByName(orgName));
 
         try {
-                res.status(200).send(await db_logic.getAllGroupNameByOrgName(orgName));        
+                const groups = await db_logic.getAllGroupNameByOrgName(orgName);
+                res.status(200).send(groups);        
         } catch (error) {
                 console.log(error);
                 res.status(400).send({message: `${error}`});
@@ -38,14 +44,17 @@ async function(req, res){
 
 /**
  * API для получения расписания по его названию
- * пример запроса: http://127.0.0.1:8000/api/getScheduleByGroupName/АФК-20
+ * пример запроса: http://192.168.0.11:8000/api/getScheduleByGroupName/АФК-20/
+ * headers: {'password': 'zabgu'}
  */
 router.get("/api/getScheduleByGroupName/:scheduleName", async function(req, res){
         
         const scheduleName = await req.params.scheduleName;
+        // const password = await req.params.password;
+        const password = req.headers["password"];
 
         try {
-                const schedule = await db_logic.getScheduleByName(scheduleName)
+                const schedule = await db_logic.getScheduleByName(scheduleName, password)
                 res.status(200).send(schedule);        
         } catch (error) {
                 console.log(error);
@@ -54,8 +63,23 @@ router.get("/api/getScheduleByGroupName/:scheduleName", async function(req, res)
 })
 
 
-router.get("/api/getAllOrganization")
+/**
+ * API для получения списка организаций по типу организации
+ * пример запроса: http://192.168.0.11:8000/api/getAllOrganizationByOrgType/Высшее учебное заведение
+ */
+router.get("/api/getAllOrganizationByOrgType/:typeOrgName", async function(req, res){
 
+        const typeOrgName = await req.params.typeOrgName;
+
+        try {
+                const organizations = await db_logic.getAllOrganizationByType(typeOrgName);
+                res.status(200).send(organizations);
+        } catch (error) {
+                console.log(error);
+                res.status(400).send({message: `${error}`});  
+        }
+
+})
 
 
 module.exports = router;

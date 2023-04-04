@@ -106,7 +106,7 @@ async function getEventListByGroup(strNameGroup){
             let LocationCon = $(elem).find(`tr:nth-child(${j}) td:nth-child(${startIndex + 3})`).text();
             let Location2Con = $(elem).find(`tr:nth-child(${j}) td:nth-child(${startIndex + 4})`).text();
 
-            if (!NameCon.length == 0 && !TypeCon.length == 0 && !HostCon.length == 0 && 
+            if (!NameCon.length == 0 && !TypeCon.length == 0 && 
                 !LocationCon.length == 0 && !Location2Con.length == 0){
                     data.push({
                         WeekDayNumber: counterWeekDay,
@@ -115,8 +115,8 @@ async function getEventListByGroup(strNameGroup){
                         Name: NameCon,
                         Type: TypeCon,
                         Host: HostCon,
-                        Location: LocationCon,
-                        Location2: Location2Con,
+                        faculty: LocationCon,
+                        Location: Location2Con,
                     }); 
                 }
 
