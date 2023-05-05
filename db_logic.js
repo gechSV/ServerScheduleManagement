@@ -9,11 +9,13 @@ const sequelize = new Sequelize(
     "sadamit2242", {
     dialect: "postgres",
     host: "localhost",
+    logging: false
   });
 
 // Подключение моделей БД
 const {Schedule, ScheduleType, OrganizationType, Organization} = 
-    require('./DB_models/schedule_model.js')
+    require('./DB_models/schedule_model.js');
+const { all } = require('axios');
 
 class DB_logic{
 
@@ -232,6 +234,19 @@ class DB_logic{
         }
 
         return organizations;
+    }
+
+    async getTeacherSchedule(){
+        const allSchedule = await Schedule.findAll({
+            raw:true,
+            attributes: ['schedule'], 
+            where:{
+                organizationId: 1
+            }
+        }) 
+        .catch(err=> {throw new Error("db_logic: " + err)});
+
+        return allSchedule;
     }
 }
 

@@ -2,7 +2,8 @@ const {Sequelize, DataTypes, Model} = require('sequelize');
 
 const sequelize = new Sequelize("schedule_manegement_db", "postgres", "sadamit2242", {
     dialect: "postgres",
-    host: "localhost"
+    host: "localhost",
+    logging: false
 });
 
 /**

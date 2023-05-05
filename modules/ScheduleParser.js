@@ -7,6 +7,8 @@ const config = require('../config.json');
 const url = 'https://zabgu.ru/schedule'
 
 const {DB_logic} = require('../db_logic');
+const { Schedule } = require('../DB_models/schedule_model');
+const { json } = require('sequelize');
 const db_logic = new DB_logic()
 
 /**
@@ -23,7 +25,7 @@ async function getAllGroup(){
 
     const $ = cheerio.load(htmlBody);
 
-    const selectGr = await $('select#type_group option')
+    const selectGr = $('select#type_group option')
     
     selectGr.each((i, elem) =>{
                 data.push({
@@ -68,7 +70,7 @@ async function getEventListByGroup(strNameGroup){
 
     const $ = cheerio.load(htmlBody);
 
-    const selectGr = await $('table.schedule_table')
+    const selectGr = $('table.schedule_table')
 
     let data = [];
     let counterWeekDay = 0;
@@ -212,11 +214,108 @@ async function getAllGroupSchedule(){
         }
     }
 
+    console.log("scheduleArray")
+
     await db_logic.bulkAddScedule(scheduleArray);
-    console.log("sadasdadadad")
+    console.log("Данные добавлены в БД")
 }
+
+
+function process(item, teacherSchedule){
+    return new Promise((resolve, reject) => {
+        new Promise((resolve, reject) => {
+            if(!teacherSchedule.hasOwnProperty(item['Host'])){
+
+                // Совпадение не найдено, добавляем преподавателя в массив
+                teacherSchedule[item['Host']] = []
+                teacherSchedule[item['Host']].push(item)
+                resolve()
+            }
+            else{
+
+                // Проверка на повторение событий
+                if(!teacherSchedule[item['Host']].includes(item)){
+                    teacherSchedule[item['Host']].push(item)
+                    resolve()
+                }
+            }
+            resolve()
+        })
+    })
+}
+
+
+async function readTeacherSchedule() {
+    const allSchedules = await db_logic.getTeacherSchedule();
+  
+    const teacherSchedule = allSchedules.reduce(
+        // accumulator - Значение, полученное в результате предыдущего вызова callbackFn.
+        (accumulator, current) => {
+
+        const list = JSON.parse(current.schedule);
+
+        for (const item of list) {
+
+          const key = item.Host;
+
+          if (!accumulator.has(key)) {
+            accumulator.set(key, []);
+          }
+
+          accumulator.get(key).push(item);
+        }
+
+        return accumulator;
+      },
+
+      new Map()
+
+    );
+
+    // console.log((typeof teacherSchedule))
+    // return Array.from(teacherSchedule.values());
+
+    return teacherSchedule;
+}
+
+async function pushTeacherDataToBD() {
+    const result = await readTeacherSchedule();
+    const scheduleArray = []
+
+    for(const item of result){
+        // console.log(item[1][0]['Host'])
+
+        // console.log(result.item)
+
+
+        try {
+
+            scheduleArray.push({
+                name: item[1][0]['Host'],
+                schedule: JSON.stringify(item),
+                password: 'zabguTeacher',
+                scheduleTypeId: 2,
+                organizationId: 1});
+            
+        } catch (error) {
+            console.log(error);
+        }
+
+    }
+
+    await db_logic.bulkAddScedule(scheduleArray);
+
+    console.log(scheduleArray);
+};
+
+  
+
 
 exports.getAllGroup = getAllGroup;
 exports.getEventListByGroup = getEventListByGroup;
-exports.readAllGroupName = readAllGroupName
-exports.getAllGroupSchedule = getAllGroupSchedule
+exports.readAllGroupName = readAllGroupName;
+exports.getAllGroupSchedule = getAllGroupSchedule;
+exports.readTeacherSchedule = readTeacherSchedule;
+exports.pushTeacherDataToBD = pushTeacherDataToBD
+
+

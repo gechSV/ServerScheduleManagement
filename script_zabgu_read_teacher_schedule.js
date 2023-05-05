@@ -1,4 +1,3 @@
 const ZabGUScheduleParser = require('./modules/ScheduleParser')
 
-ZabGUScheduleParser.getAllGroupSchedule()
-
+ZabGUScheduleParser.pushTeacherDataToBD()
