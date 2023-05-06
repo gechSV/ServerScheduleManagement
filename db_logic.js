@@ -248,6 +248,14 @@ class DB_logic{
 
         return allSchedule;
     }
+
+    async deleteTeacherSchedule(){
+        await Schedule.destroy({
+            where: {
+              scheduleTypeId: 2
+            }
+          });
+    }
 }
 
 exports.DB_logic = DB_logic

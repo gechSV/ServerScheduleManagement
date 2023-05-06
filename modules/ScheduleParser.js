@@ -260,9 +260,14 @@ async function readTeacherSchedule() {
 
           if (!accumulator.has(key)) {
             accumulator.set(key, []);
+            accumulator.get(key).push(item);
+            continue;
           }
 
-          accumulator.get(key).push(item);
+          if(!accumulator.get(key).includes(item)){
+            accumulator.get(key).push(item);
+          }
+
         }
 
         return accumulator;
@@ -279,6 +284,7 @@ async function readTeacherSchedule() {
 }
 
 async function pushTeacherDataToBD() {
+
     const result = await readTeacherSchedule();
     const scheduleArray = []
 
@@ -292,8 +298,8 @@ async function pushTeacherDataToBD() {
 
             scheduleArray.push({
                 name: item[1][0]['Host'],
-                schedule: JSON.stringify(item),
-                password: 'zabguTeacher',
+                schedule: JSON.stringify(item[1]),
+                password: 'zabgu',
                 scheduleTypeId: 2,
                 organizationId: 1});
             
@@ -303,9 +309,10 @@ async function pushTeacherDataToBD() {
 
     }
 
+    // await db_logic.deleteTeacherSchedule()
     await db_logic.bulkAddScedule(scheduleArray);
 
-    console.log(scheduleArray);
+    // console.log(scheduleArray);
 };
 
   
