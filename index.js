@@ -24,16 +24,17 @@ router.get('/', async function(req, res){
 
 /**
  * API для получения списка наименований всех групп по названию организации
- * пример запроса: http://192.168.0.11:8000/api/getScheduleNameListByOrganizatonName/ЗабГУ
+ * пример запроса: http://192.168.0.11:8000/api/getScheduleNameListByOrganizatonName/ЗабГУ/Расписание групп
  */
-router.get("/api/getScheduleNameListByOrganizatonName/:organizationName", 
+router.get("/api/getScheduleNameListByOrganizatonName/:organizationName/:scheduleType", 
 async function(req, res){
         const orgName = await req.params.organizationName;
+        const schType = await req.params.scheduleType;
 
         // console.log(await db_logic.getOrganizationIdByName(orgName));
 
         try {
-                const groups = await db_logic.getAllGroupNameByOrgName(orgName);
+                const groups = await db_logic.getAllGroupNameByOrgName(orgName, schType);
                 res.status(200).send(groups);        
         } catch (error) {
                 console.log(error);

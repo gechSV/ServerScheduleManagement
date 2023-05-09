@@ -147,9 +147,28 @@ class DB_logic{
     }
 
     /**
+     * Функция для получения id типа расписания по его имени
+     * @param {*} orgName нименование
+     * @returns TypeId
+     */
+    async getTypeIdByName(typeName){
+
+        const id = await ScheduleType.findOne({
+            raw:true, 
+            attributes: ['id'],
+            where:{
+                type: typeName
+            }
+        })
+        .catch(err=> {throw new Error("db_logic: " + err)});
+
+        return id;
+    }
+
+    /**
      * Функция для получения сиска нименования всех групп по имени организации
      */
-    async getAllGroupNameByOrgName(orgName){
+    async getAllGroupNameByOrgName(orgName, typeName){
 
         if(orgName === null){
             throw new Error(`db_logic: orgName = null`);
@@ -160,11 +179,19 @@ class DB_logic{
             throw new Error(`db_logic: в таблице organizations не было найдено совпадений по имнени ${orgName}`);
         }
 
+        const typeId = await this.getTypeIdByName(typeName);
+        if(typeId == null){
+            throw new Error(`db_logic: в таблице schedule_type не было найдено совпадений по имнени ${typeName}`);
+        }
+
+
+
         const allGroupName = await Schedule.findAll({
             raw: true,
             attributes: ['name'],
             where: {
-                organizationId: orgId.id
+                organizationId: orgId.id, 
+                scheduleTypeId: typeId.id
             }
         })
         .catch(err=> {throw new Error("db_logic: " + err)});

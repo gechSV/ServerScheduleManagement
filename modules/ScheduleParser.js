@@ -119,6 +119,7 @@ async function getEventListByGroup(strNameGroup){
                         Host: HostCon,
                         faculty: LocationCon,
                         Location: Location2Con,
+                        Group:strNameGroup
                     }); 
                 }
 
@@ -221,38 +222,19 @@ async function getAllGroupSchedule(){
 }
 
 
-function process(item, teacherSchedule){
-    return new Promise((resolve, reject) => {
-        new Promise((resolve, reject) => {
-            if(!teacherSchedule.hasOwnProperty(item['Host'])){
-
-                // Совпадение не найдено, добавляем преподавателя в массив
-                teacherSchedule[item['Host']] = []
-                teacherSchedule[item['Host']].push(item)
-                resolve()
-            }
-            else{
-
-                // Проверка на повторение событий
-                if(!teacherSchedule[item['Host']].includes(item)){
-                    teacherSchedule[item['Host']].push(item)
-                    resolve()
-                }
-            }
-            resolve()
-        })
-    })
-}
-
-
 async function readTeacherSchedule() {
     const allSchedules = await db_logic.getTeacherSchedule();
+
+    console.log()
   
     const teacherSchedule = allSchedules.reduce(
         // accumulator - Значение, полученное в результате предыдущего вызова callbackFn.
         (accumulator, current) => {
 
+            console.log(current)
+
         const list = JSON.parse(current.schedule);
+        
 
         for (const item of list) {
 
@@ -286,13 +268,10 @@ async function readTeacherSchedule() {
 async function pushTeacherDataToBD() {
 
     const result = await readTeacherSchedule();
+    // console.log(result)
     const scheduleArray = []
 
     for(const item of result){
-        // console.log(item[1][0]['Host'])
-
-        // console.log(result.item)
-
 
         try {
 
@@ -309,13 +288,11 @@ async function pushTeacherDataToBD() {
 
     }
 
-    // await db_logic.deleteTeacherSchedule()
+    await db_logic.deleteTeacherSchedule()
     await db_logic.bulkAddScedule(scheduleArray);
 
     // console.log(scheduleArray);
 };
-
-  
 
 
 exports.getAllGroup = getAllGroup;
