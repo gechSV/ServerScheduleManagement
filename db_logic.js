@@ -228,6 +228,35 @@ class DB_logic{
         return JSON.parse(schedule['schedule']);
     }
 
+    /**
+     * Функция для получения расписания в формате JSON по названию
+     * @param {*} scName название расписания 
+     * @returns json
+     */
+    async getScheduleByName(scName){
+
+        if(scName === null){
+            throw new Error(`db_logic: scName = null`);
+        }
+        
+
+        const schedule = await Schedule.findOne({
+            raw: true,
+            attributes: ['schedule'],
+            where: {
+                name: scName,  
+            }
+        })
+        .catch(err=> {throw new Error("db_logic: " + err)});
+
+        if(schedule === null){
+            throw new Error(`db_logic: в таблице schedule не было найдено совпадений по имнени ${scName}`);
+        }
+
+        return JSON.parse(schedule['schedule']);
+    }
+
+
     async getAllOrganizationByType(typeOrgName){
         if(typeOrgName === null){
             throw new Error(`db_logic: typeOrgName = null`);
@@ -282,6 +311,48 @@ class DB_logic{
               scheduleTypeId: 2
             }
           });
+    }
+
+    async addNewUserSchedule(name, password, schedule, scheduleTypeId, organizationId){
+        if ((name !== null) && (schedule !== null) && (password.length == 0 || password.length >= 4)
+            && (scheduleTypeId !== null) && (organizationId !== null)){
+            
+            const count = await Schedule.findAll({
+                raw:true, 
+                where:{
+                    name: name, 
+                    password: password
+                }
+            })
+
+            if(count.length > 0){
+                Schedule.update(
+                    {schedule: schedule}, 
+                {where: {
+                    name: name,
+                    password:password
+                }}
+                )
+                .then(() => console.log('\x1b[32m', 'db_logic: В таблтцe schedule обновлена запись', '\x1b[0m'))
+                .catch(err=> {throw new Error("db_logic: " + err)})
+            }
+            else{
+                Schedule.create({
+                    name: name,
+                    schedule: schedule,
+                    password: password,
+                    scheduleTypeId: scheduleTypeId,
+                    organizationId: organizationId
+                    
+                })
+                .then(() => console.log('\x1b[32m', 'db_logic: В таблтцу schedule добавлена запись', '\x1b[0m'))
+                .catch(err=> {throw new Error("db_logic: " + err)})
+            }
+
+        }
+        else{
+            throw new Error("db_logic: incorrect param")
+        }
     }
 }
 

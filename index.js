@@ -7,10 +7,13 @@ const ZabGUParser = require('./modules/ScheduleParser')
 const FIO = require('./modules/FileIO')
 const config = require('./config.json');
 
+const bodyParser  = require('body-parser');
+
 const {DB_logic} = require('./db_logic');
 const db_logic = new DB_logic()
 
 router.use(express.static('public'))
+router.use(bodyParser.urlencoded({extended: true}));
 
 router.get('/', async function(req, res){ 
         try {
@@ -63,6 +66,23 @@ router.get("/api/getScheduleByGroupName/:scheduleName", async function(req, res)
         }
 })
 
+/**
+ * API для получения расписания пользователя по его названию
+ * пример запроса: http://192.168.0.11:8000/api/getUserSchedule/name/
+ */
+router.get("/api/getUserSchedule/:scheduleName", async function(req, res){
+        
+        const scheduleName = await req.params.scheduleName;
+
+        try {
+                const schedule = await db_logic.getScheduleByName(scheduleName)
+                res.status(200).send(schedule);        
+        } catch (error) {
+                console.log(error);
+                res.status(400).send({message: `${error}`});
+        }
+})
+
 
 /**
  * API для получения списка организаций по типу организации
@@ -80,6 +100,28 @@ router.get("/api/getAllOrganizationByOrgType/:typeOrgName", async function(req, 
                 res.status(400).send({message: `${error}`});  
         }
 
+})
+
+/**
+ * API для добавления расписания пользователя в базу данных
+ */
+router.post("/api/addSchedule/",async function(req, res){
+        const name = await req.body.ScheduleName;
+        const password = await req.body.Password;
+        const schedule = await req.body.Schedule;
+        
+        console.log(name)
+        console.log(password)
+        console.log(schedule)
+        
+        try {
+                await db_logic.addNewUserSchedule(name, password, schedule, 3, 3)
+        } catch (error) {
+                res.status(500).send("err")
+                return
+        }
+
+        res.status(200).send("ok")
 })
 
 
